@@ -1,0 +1,513 @@
+{
+  "id": "3dab4080-0457-4ca6-91b1-2bc34b179f8d",
+  "revision": 0,
+  "last_node_id": 26,
+  "last_link_id": 31,
+  "nodes": [
+    {
+      "id": 8,
+      "type": "StringFunction|pysssss",
+      "pos": [
+        6100,
+        3425
+      ],
+      "size": [
+        475,
+        775
+      ],
+      "flags": {},
+      "order": 9,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "text_b",
+          "shape": 7,
+          "type": "STRING",
+          "widget": {
+            "name": "text_b"
+          },
+          "link": 31
+        }
+      ],
+      "outputs": [
+        {
+          "name": "STRING",
+          "type": "STRING",
+          "links": null
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfyui-custom-scripts",
+        "ver": "1.2.5",
+        "Node name for S&R": "StringFunction|pysssss",
+        "widget_ue_connectable": {}
+      },
+      "widgets_values": [
+        "append",
+        "yes",
+        "lora:myowndamnstyle:1.2,",
+        "",
+        "",
+        "lora:myowndamnstyle:1.2, A mysterious figure is flagging down a car, wide shot shot, shot with standard 35mm lens, featuring soft focus, using top lighting, with dramatic lighting, in cool 7000k color temperature, during midnight, in exterior setting, with rainy weather, featuring (smoke:0.4), in gritty style, with tense mood, evoking (horror:1.2) genre, with muted palette color grading, emulating 35mm film, rendered at ultra hd 4k, in (16:9 widescreen:1.4) aspect ratio, with vignetting, processed with hdr, composed using rule of thirds, utilizing jump cut technique."
+      ]
+    },
+    {
+      "id": 17,
+      "type": "PromptInferenceBHTools|BHTools",
+      "pos": [
+        4850,
+        3400
+      ],
+      "size": [
+        400,
+        310
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "enhanced_prompt",
+          "type": "STRING",
+          "links": [
+            22
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "PromptInferenceBHTools|BHTools",
+        "widget_ue_connectable": {}
+      },
+      "widgets_values": [
+        "a chicken",
+        "lora:myowndamnstyle:1.2",
+        "Qwen2.5-3B [High Quality]",
+        "cinematic",
+        0.8500000000000002,
+        425,
+        1037341071,
+        "randomize",
+        true
+      ]
+    },
+    {
+      "id": 21,
+      "type": "EndOfWorkflowClearingNodeBHTools|BHTools",
+      "pos": [
+        6800,
+        3425
+      ],
+      "size": [
+        388.59442138671875,
+        322
+      ],
+      "flags": {},
+      "order": 8,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "trigger",
+          "type": "*",
+          "link": 29
+        }
+      ],
+      "outputs": [
+        {
+          "name": "cleanup_report",
+          "type": "STRING",
+          "links": null
+        }
+      ],
+      "properties": {
+        "widget_ue_connectable": {},
+        "Node name for S&R": "EndOfWorkflowClearingNodeBHTools|BHTools"
+      },
+      "widgets_values": [
+        true,
+        false,
+        false,
+        false,
+        false,
+        true,
+        "complete",
+        false,
+        true,
+        true,
+        2,
+        4
+      ]
+    },
+    {
+      "id": 11,
+      "type": "StringFunction|pysssss",
+      "pos": [
+        4850,
+        3775
+      ],
+      "size": [
+        425,
+        425
+      ],
+      "flags": {},
+      "order": 6,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "text_a",
+          "shape": 7,
+          "type": "STRING",
+          "widget": {
+            "name": "text_a"
+          },
+          "link": 22
+        }
+      ],
+      "outputs": [
+        {
+          "name": "STRING",
+          "type": "STRING",
+          "links": []
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfyui-custom-scripts",
+        "ver": "1.2.5",
+        "Node name for S&R": "StringFunction|pysssss",
+        "widget_ue_connectable": {}
+      },
+      "widgets_values": [
+        "append",
+        "yes",
+        "",
+        "",
+        "",
+        "lora:myowndamnstyle:1.2, a chicken, majestic, golden-roasted chicken standing regally on a silver platter in an opulent, candlelit dining room under the soft glow of chandeliers, set against a backdrop of flowing silk curtains and richly patterned carpets"
+      ]
+    },
+    {
+      "id": 15,
+      "type": "CinematicSceneDirector|BHTools",
+      "pos": [
+        5650,
+        3425
+      ],
+      "size": [
+        400,
+        1376
+      ],
+      "flags": {},
+      "order": 7,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "prompt_index",
+          "type": "INT",
+          "widget": {
+            "name": "prompt_index"
+          },
+          "link": 30
+        }
+      ],
+      "outputs": [
+        {
+          "name": "cinematic_prompt",
+          "type": "STRING",
+          "links": [
+            29,
+            31
+          ]
+        },
+        {
+          "name": "next_index",
+          "type": "INT",
+          "links": null
+        },
+        {
+          "name": "debug_info",
+          "type": "STRING",
+          "links": null
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "CinematicSceneDirector|BHTools",
+        "widget_ue_connectable": {}
+      },
+      "widgets_values": [
+        "A mysterious figure is walking down a road\nA mysterious figure is flagging down a car\nA mysterious figure puls out a banana",
+        2,
+        true,
+        false,
+        "None",
+        "Wide Shot",
+        1,
+        "None",
+        1,
+        "None",
+        1.1,
+        "Standard 35mm",
+        1,
+        "Soft Focus",
+        1,
+        "Top Lighting",
+        1,
+        "Dramatic Lighting",
+        1,
+        "Cool 7000K",
+        1,
+        "Midnight",
+        1,
+        "None",
+        1,
+        "Exterior",
+        1,
+        "Rainy",
+        1,
+        "Smoke",
+        0.4,
+        "Gritty",
+        1,
+        "Tense",
+        1,
+        "Horror",
+        1.2000000000000002,
+        "Muted Palette",
+        1,
+        "35mm Film",
+        1,
+        "Ultra HD 4K",
+        1,
+        "16:9 Widescreen",
+        1.4000000000000001,
+        "Vignetting",
+        1,
+        "HDR",
+        1,
+        "Rule of Thirds",
+        1,
+        "Jump Cut",
+        1
+      ]
+    },
+    {
+      "id": 22,
+      "type": "PrimitiveNode",
+      "pos": [
+        5400,
+        3425
+      ],
+      "size": [
+        210,
+        82
+      ],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "INT",
+          "type": "INT",
+          "widget": {
+            "name": "prompt_index"
+          },
+          "links": [
+            30
+          ]
+        }
+      ],
+      "properties": {
+        "Run widget replace on values": false
+      },
+      "widgets_values": [
+        2,
+        "increment"
+      ]
+    },
+    {
+      "id": 23,
+      "type": "Note",
+      "pos": [
+        4475,
+        3450
+      ],
+      "size": [
+        300,
+        100
+      ],
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "properties": {},
+      "widgets_values": [
+        "BH Tools\n\nA set of handy prompt and cache nodes to help in quick, consistent ideation accross all models. "
+      ],
+      "color": "#323",
+      "bgcolor": "#535"
+    },
+    {
+      "id": 24,
+      "type": "Note",
+      "pos": [
+        4800,
+        4325
+      ],
+      "size": [
+        475,
+        125
+      ],
+      "flags": {},
+      "order": 3,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "properties": {},
+      "widgets_values": [
+        "BH Tools - Prompt Inference\n\nDon't know what to write? Wing it. You can just add one word or no words and the node will do the rest. \n\nHave a lora? Add it to the second box. It'll put it at the head of your prompt. "
+      ],
+      "color": "#323",
+      "bgcolor": "#535"
+    },
+    {
+      "id": 26,
+      "type": "Note",
+      "pos": [
+        6700,
+        3900
+      ],
+      "size": [
+        475,
+        125
+      ],
+      "flags": {},
+      "order": 4,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "properties": {},
+      "widgets_values": [
+        "BH Tools - Cinematic Scene Director\n\nNeed to push your projects but keep hitting memory celings? Clear dat cache. This is a an end of workflow trigger that clears evrything."
+      ],
+      "color": "#323",
+      "bgcolor": "#535"
+    },
+    {
+      "id": 25,
+      "type": "Note",
+      "pos": [
+        6125,
+        4300
+      ],
+      "size": [
+        475,
+        125
+      ],
+      "flags": {},
+      "order": 5,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "properties": {},
+      "widgets_values": [
+        "BH Tools - Cinematic Scene Director\n\nA simple node that keeps everything consistent run-to-run. It has presets or details with their own weights you can customize.\n\nFor the text box, if you have multiple promopts, just put them on their own line, connect the primitive to the index and you can cycle through the list one by one. "
+      ],
+      "color": "#323",
+      "bgcolor": "#535"
+    }
+  ],
+  "links": [
+    [
+      22,
+      17,
+      0,
+      11,
+      0,
+      "STRING"
+    ],
+    [
+      29,
+      15,
+      0,
+      21,
+      0,
+      "*"
+    ],
+    [
+      30,
+      22,
+      0,
+      15,
+      0,
+      "INT"
+    ],
+    [
+      31,
+      15,
+      0,
+      8,
+      0,
+      "STRING"
+    ]
+  ],
+  "groups": [
+    {
+      "id": 1,
+      "title": "Prompt Inference",
+      "bounding": [
+        4800,
+        3300,
+        500,
+        950
+      ],
+      "color": "#3f789e",
+      "font_size": 24,
+      "flags": {}
+    },
+    {
+      "id": 2,
+      "title": "Cinematic Scene Director",
+      "bounding": [
+        5350,
+        3300,
+        1300,
+        1550
+      ],
+      "color": "#8A8",
+      "font_size": 24,
+      "flags": {}
+    },
+    {
+      "id": 3,
+      "title": "End of Workflow Cleaning Node",
+      "bounding": [
+        6700,
+        3300,
+        575,
+        525
+      ],
+      "color": "#A88",
+      "font_size": 24,
+      "flags": {}
+    }
+  ],
+  "config": {},
+  "extra": {
+    "ue_links": [],
+    "ds": {
+      "scale": 0.7920288544848448,
+      "offset": [
+        -4250.68773793875,
+        -3248.373689409781
+      ]
+    },
+    "links_added_by_ue": [],
+    "frontendVersion": "1.23.4",
+    "VHS_latentpreview": false,
+    "VHS_latentpreviewrate": 0,
+    "VHS_MetadataImage": true,
+    "VHS_KeepIntermediate": true
+  },
+  "version": 0.4
+}
