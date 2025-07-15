@@ -1,22 +1,22 @@
-from .nodes.CinematicSceneDirectorBHTools import CinematicSceneDirector
-from .nodes.EndOfWorkflowClearingNodeBHTools import EndOfWorkflowClearingNodeBHTools
-from .nodes.PromptInferenceBHTools import PromptInferenceBHTools
 
-# Set categories for each node class
-CinematicSceneDirector.CATEGORY = "BHTools"
-EndOfWorkflowClearingNodeBHTools.CATEGORY = "BHTools"
-PromptInferenceBHTools.CATEGORY = "BHTools"
+from .nodes.CinematicSceneDirectorNodeBHTools import CinematicSceneDirectorTools
+from .nodes.EndOfWorkflowClearingNodeBHTools import EndOfWorkflowClearingBHTools
+from .nodes.PromptInferenceNodeBHTools import PromptInferenceBHTools
+from .nodes.SaveVideoOrImageNodeBHTools import SaveImageVideoBHTools
+
 
 NODE_CLASS_MAPPINGS = {
-    "CinematicSceneDirector|BHTools": CinematicSceneDirector,
-    "EndOfWorkflowClearingNodeBHTools|BHTools": EndOfWorkflowClearingNodeBHTools,
-    "PromptInferenceBHTools|BHTools": PromptInferenceBHTools
+    "CinematicSceneDirectorTools": CinematicSceneDirectorTools,
+    "EndOfWorkflowClearingBHTools": EndOfWorkflowClearingBHTools,
+    "PromptInferenceBHTools": PromptInferenceBHTools,
+    "SaveImageVideoBHTools": SaveImageVideoBHTools,
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "CinematicSceneDirector|BHTools": "🎬 Cinematic Scene Director | BH Tools",
-    "EndOfWorkflowClearingNodeBHTools|BHTools": "🎬 End Of Workflow Clearing Node | BH Tools",
-    "PromptInferenceBHTools|BHTools": "🎬 Prompt Inference | BH Tools"
+    "CinematicSceneDirectorTools": "🎬 Cinematic Scene Director | BH Tools",
+    "EndOfWorkflowClearingBHTools": "🎬 End Workflow Cleanup | BH Tools",
+    "PromptInferenceBHTools": "🎬 Prompt Inference | BH Tools",
+    "SaveImageVideoBHTools": "🎬 Save Image/Video | BH Tools",
 }
 
-__all__ = ["NODE_CLASS_MAPPINGS", "NODE_DISPLAY_NAME_MAPPINGS"]
+__all__ = ["NODE_CLASS_MAPPINGS", "NODE_DISPLAY_NAME_MAPPINGS", "get_web_extensions"]

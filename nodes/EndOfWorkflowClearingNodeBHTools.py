@@ -1,3 +1,5 @@
+# comfyui-bhtools/nodes/EndOfWorkflowClearingNodeBHTools.py
+
 import gc
 import os
 import logging
@@ -11,6 +13,7 @@ import torch
 logger = logging.getLogger(__name__)
 
 def clear_temp_dir(pattern="*comfy*") -> int:
+    """Clears temporary files matching a pattern."""
     count = 0
     temp_dir = Path(tempfile.gettempdir())
     for p in temp_dir.glob(pattern):
@@ -25,12 +28,13 @@ def clear_temp_dir(pattern="*comfy*") -> int:
     return count
 
 def unload_comfyui_models() -> bool:
+    """Attempts to unload ComfyUI models from memory."""
     try:
         import comfy.model_management as mm
         if hasattr(mm, 'unload_all_models'):
             mm.unload_all_models()
             return True
-        if hasattr(mm, 'cleanup_models'):
+        if hasattr(mm, 'cleanup_models'): # Fallback for older ComfyUI versions
             mm.cleanup_models()
             return True
     except Exception as e:
@@ -38,46 +42,50 @@ def unload_comfyui_models() -> bool:
     return False
 
 def gpu_clear(method: str, reset_peak: bool = False) -> None:
-    torch.cuda.empty_cache()
+    """Clears GPU memory based on the specified method."""
+    torch.cuda.empty_cache() # Always clear cache
     if method in ("hard", "complete"):
-        torch.cuda.ipc_collect()
-        torch.cuda.synchronize()
+        torch.cuda.ipc_collect() # Aggressive collection
+        torch.cuda.synchronize() # Wait for GPU operations to complete
     if method == "complete" and reset_peak:
+        # Reset peak memory stats for accurate monitoring
         torch.cuda.reset_peak_memory_stats()
         torch.cuda.reset_max_memory_allocated()
         torch.cuda.reset_max_memory_cached()
 
-class EndOfWorkflowClearingNodeBHTools:
+class EndOfWorkflowClearingBHTools:
     """
-    ComfyUI node: final cleanup at workflow end, returns only the status report.
+    ComfyUI node: Performs a final cleanup at the end of a workflow execution.
+    This node helps free up system RAM and GPU VRAM, clear temporary files,
+    and unload models to optimize resource usage.
     """
     def __init__(self):
-        self._has_run = False
+        self._has_run = False # Internal flag to ensure 'only_run_once' functionality
 
     @classmethod
     def INPUT_TYPES(cls):
         return {
             "required": {
-                "trigger": ("*", {}),
-                "clear_vram": ("BOOLEAN", {"default": True}),
-                "clear_models": ("BOOLEAN", {"default": True}),
-                "clear_torch_cache": ("BOOLEAN", {"default": False}),
-                "clear_system_cache": ("BOOLEAN", {"default": False}),
-                "clear_temp_files": ("BOOLEAN", {"default": False}),
-                "force_gc": ("BOOLEAN", {"default": True}),
-                "vram_clear_method": (["soft", "hard", "complete"], {"default": "hard"}),
-                "only_if_above_threshold": ("BOOLEAN", {"default": False}),
-                "only_run_once": ("BOOLEAN", {"default": True}),
-                "verbose": ("BOOLEAN", {"default": True}),
+                "trigger": ("*", {"tooltip": "Connect any node output here to trigger the cleanup."}),
+                "clear_vram": ("BOOLEAN", {"default": True, "tooltip": "If checked, attempts to clear GPU VRAM."}),
+                "clear_models": ("BOOLEAN", {"default": True, "tooltip": "If checked, attempts to unload ComfyUI models from VRAM."}),
+                "clear_torch_cache": ("BOOLEAN", {"default": False, "tooltip": "If checked, clears PyTorch's internal CUDA cache."}),
+                "clear_system_cache": ("BOOLEAN", {"default": False, "tooltip": "If checked, attempts to clear system-level file caches (Linux/macOS 'sync')."}),
+                "clear_temp_files": ("BOOLEAN", {"default": False, "tooltip": "If checked, removes temporary files created by ComfyUI."}),
+                "force_gc": ("BOOLEAN", {"default": True, "tooltip": "If checked, forces Python's garbage collector to run."}),
+                "vram_clear_method": (["soft", "hard", "complete"], {"default": "hard", "tooltip": "Method for VRAM clearing: 'soft' (empty cache), 'hard' (ipc_collect), 'complete' (hard + reset peak stats)."}),
+                "only_if_above_threshold": ("BOOLEAN", {"default": False, "tooltip": "If checked, cleanup only runs if RAM/VRAM usage exceeds thresholds."}),
+                "only_run_once": ("BOOLEAN", {"default": True, "tooltip": "If checked, the cleanup process will only execute once per ComfyUI session."}),
+                "verbose": ("BOOLEAN", {"default": True, "tooltip": "If checked, prints detailed cleanup status to the console."}),
             },
             "optional": {
                 "vram_threshold_gb": ("FLOAT", {
                     "default": 2.0, "min": 0.0, "max": 64.0, "step": 0.1,
-                    "display": "slider"
+                    "display": "slider", "tooltip": "Minimum VRAM usage (GB) to trigger cleanup if 'only_if_above_threshold' is true."
                 }),
                 "ram_threshold_gb": ("FLOAT", {
                     "default": 4.0, "min": 0.0, "max": 128.0, "step": 0.1,
-                    "display": "slider"
+                    "display": "slider", "tooltip": "Minimum RAM usage (GB) to trigger cleanup if 'only_if_above_threshold' is true."
                 }),
             },
         }
@@ -85,11 +93,11 @@ class EndOfWorkflowClearingNodeBHTools:
     RETURN_TYPES = ("STRING",)
     RETURN_NAMES = ("cleanup_report",)
     FUNCTION = "end_of_workflow_cleanup"
-    CATEGORY = "utils/memory"
+    CATEGORY = "BH Tools" # Node category for ComfyUI menu
 
     def end_of_workflow_cleanup(
         self,
-        trigger,
+        trigger, # This input is just to trigger execution, its value is not used
         clear_vram,
         clear_models,
         clear_torch_cache,
@@ -103,108 +111,107 @@ class EndOfWorkflowClearingNodeBHTools:
         vram_threshold_gb=2.0,
         ram_threshold_gb=4.0,
     ):
-        # only run once guard
+        # Guard to ensure cleanup runs only once per ComfyUI session if specified
         if only_run_once and self._has_run:
             return ("Cleanup already executed, skipping.",)
         if only_run_once:
             self._has_run = True
 
-        status = []
+        status = [] # List to collect status messages for the report
 
-        # validate thresholds
+        # Validate threshold values
         if vram_threshold_gb < 0 or ram_threshold_gb < 0:
-            raise ValueError("Threshold values must be non-negative")
+            status.append("Error: Threshold values must be non-negative. Cleanup aborted.")
+            report = "\n".join(status)
+            print(report)
+            return (report,)
 
-        # initial snapshot
+        # Record initial memory usage
         vm = psutil.virtual_memory()
-        initial_ram = vm.used / 1024**3
+        initial_ram = vm.used / 1024**3 # Convert bytes to GB
         initial_vram = (
             torch.cuda.memory_allocated() / 1024**3
             if torch.cuda.is_available() else 0.0
         )
 
         if verbose:
-            msg = f"Start — RAM: {initial_ram:.2f} GB"
+            msg = f"Cleanup Start — RAM: {initial_ram:.2f} GB"
             if torch.cuda.is_available():
                 msg += f", VRAM: {initial_vram:.2f} GB"
             status.append(msg)
 
-        # conditional skip
+        # Conditional cleanup based on thresholds
         if only_if_above_threshold:
             ram_cond = initial_ram >= ram_threshold_gb
             vram_cond = initial_vram >= vram_threshold_gb
             if not (ram_cond or vram_cond):
-                status.append("✓ Usage below thresholds, cleanup skipped")
-                return "\n".join(status)
+                status.append("✓ Usage below thresholds, cleanup skipped.")
+                report = "\n".join(status)
+                print(report)
+                return (report,)
             if ram_cond:
-                status.append(f"⚠ RAM ≥ {ram_threshold_gb:.1f} GB")
+                status.append(f"⚠ RAM usage ({initial_ram:.2f} GB) ≥ threshold ({ram_threshold_gb:.1f} GB).")
             if vram_cond:
-                status.append(f"⚠ VRAM ≥ {vram_threshold_gb:.1f} GB")
+                status.append(f"⚠ VRAM usage ({initial_vram:.2f} GB) ≥ threshold ({vram_threshold_gb:.1f} GB).")
 
-        # unload models
+        # Perform cleanup actions
+        # Unload ComfyUI models
         if clear_models and torch.cuda.is_available():
             if unload_comfyui_models():
-                status.append("✓ Models unloaded")
+                status.append("✓ Models unloaded.")
             else:
-                status.append("⚠ Model unload skipped")
+                status.append("⚠ Model unload skipped or failed.")
 
-        # garbage collection
+        # Force Python garbage collection
         if force_gc:
             collected = gc.collect()
-            status.append(f"✓ GC freed {collected} objects")
+            status.append(f"✓ GC freed {collected} objects.")
 
-        # VRAM clear
+        # Clear VRAM
         if clear_vram and torch.cuda.is_available():
             try:
                 gpu_clear(vram_clear_method, reset_peak=(vram_clear_method == "complete"))
-                status.append(f"✓ VRAM {vram_clear_method} clear")
+                status.append(f"✓ VRAM {vram_clear_method} clear performed.")
             except Exception as e:
                 status.append(f"⚠ VRAM clear error: {e}")
 
-        # torch cache
+        # Clear PyTorch CUDA cache
         if clear_torch_cache:
             try:
                 torch.cuda.empty_cache()
-                status.append("✓ PyTorch cache cleared")
+                status.append("✓ PyTorch CUDA cache cleared.")
             except Exception as e:
-                status.append(f"⚠ Torch cache error: {e}")
+                status.append(f"⚠ PyTorch cache error: {e}")
 
-        # system cache
+        # Clear system cache (Linux/macOS specific)
         if clear_system_cache:
             try:
-                if os.name == "posix":
+                if os.name == "posix": # For Linux/macOS
                     ret = os.system("sync")
                     status.append("✓ System sync" if ret == 0 else f"⚠ Sync returned {ret}")
-                else:
-                    status.append("✓ Windows cache no-op")
+                else: # For Windows, this is a no-op as Windows manages cache differently
+                    status.append("✓ Windows system cache clear (no-op).")
             except Exception as e:
-                status.append(f"⚠ System cache error: {e}")
+                status.append(f"⚠ System cache clear error: {e}")
 
-        # temp files
+        # Clear temporary files
         if clear_temp_files:
             removed = clear_temp_dir()
-            status.append(f"✓ Temp files removed: {removed}")
+            status.append(f"✓ Temp files removed: {removed} items.")
 
-        # final snapshot
+        # Record final memory usage and report freed memory
         if verbose:
             vm2 = psutil.virtual_memory()
             final_ram = vm2.used / 1024**3
-            freed_ram = max(0.0, initial_ram - final_ram)
-            status.append(f"End — RAM freed {freed_ram:.2f} GB")
+            freed_ram = max(0.0, initial_ram - final_ram) # Ensure non-negative
+            status.append(f"Cleanup End — RAM freed {freed_ram:.2f} GB.")
             if torch.cuda.is_available():
                 final_vram = torch.cuda.memory_allocated() / 1024**3
-                freed_vram = max(0.0, initial_vram - final_vram)
-                status.append(f"VRAM freed {freed_vram:.2f} GB")
+                freed_vram = max(0.0, initial_vram - final_vram) # Ensure non-negative
+                status.append(f"VRAM freed {freed_vram:.2f} GB.")
 
         status.append("🎉 Cleanup complete!")
         report = "\n".join(status)
+        print(report) # Print the report to the ComfyUI console
         return (report,)
 
-
-NODE_CLASS_MAPPINGS = {
-    "EndOfWorkflowClearingNodeBHTools": EndOfWorkflowClearingNodeBHTools,
-}
-
-NODE_DISPLAY_NAME_MAPPINGS = {
-    "EndOfWorkflowClearingNodeBHTools": "🎬 End Workflow Cleanup | BH Tools",
-}
